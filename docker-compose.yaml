@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: library_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  library_app:
+    build: .
+    container_name: library_app
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/library_db
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
