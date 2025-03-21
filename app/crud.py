@@ -1,37 +1,68 @@
-from database import Database
+import logging
+import psycopg2
 
 class BookManager:
-    def __init__(self):
-        self.db = Database()
+    def __init__(self, db):
+        self.db = db
+        self._setup_logging()
 
-    def add_book(self, kitap_adi, yazar, yayin_yili, sayfa_sayisi):
-        query = "INSERT INTO books (kitap_adi, yazar, yayin_yili, sayfa_sayisi) VALUES (%s, %s, %s, %s)"
-        self.db.cursor.execute(query, (kitap_adi, yazar, yayin_yili, sayfa_sayisi))
-        self.db.conn.commit()
-        print("Kitap başarıyla eklendi!")
+    def _setup_logging(self):
+        """Setup logging configuration."""
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+        self.logger = logging.getLogger(__name__)
 
-    def list_books(self):
+    def add_book(self, title, author, year, pages):
+        """Add a new book to the library."""
+        query = "INSERT INTO books (title, author, year, pages) VALUES (%s, %s, %s, %s)"
+        values = (title, author, year, pages)
+
+        return self._execute_query(query, values, "added")
+
+    def get_books(self):
+        """List all books in the library."""
         query = "SELECT * FROM books"
-        self.db.cursor.execute(query)
-        books = self.db.cursor.fetchall()
-        
-        if not books:
-            print("Kütüphane boş!")
-        else:
-            for book in books:
-                print(f"ID: {book[0]}, Kitap Adı: {book[1]}, Yazar: {book[2]}, Yayın Yılı: {book[3]}, Sayfa Sayısı: {book[4]}")
 
-    def update_book(self, book_id, yeni_yazar, yeni_yayin_yili, yeni_sayfa_sayisi):
-        query = "UPDATE books SET yazar=%s, yayin_yili=%s, sayfa_sayisi=%s WHERE id=%s"
-        self.db.cursor.execute(query, (yeni_yazar, yeni_yayin_yili, yeni_sayfa_sayisi, book_id))
-        self.db.conn.commit()
-        print("Kitap başarıyla güncellendi!")
+        return self._fetch_query(query)
 
-    def delete_book(self, book_id):
-        query = "DELETE FROM books WHERE id=%s"
-        self.db.cursor.execute(query, (book_id,))
-        self.db.conn.commit()
-        print("Kitap başarıyla silindi!")
+    def update_book(self, title, new_author, new_year, new_pages):
+        """Update an existing book."""
+        query = """UPDATE books SET author = %s, year = %s, pages = %s WHERE title = %s"""
+        values = (new_author, new_year, new_pages, title)
 
-    def close(self):
-        self.db.close_connection()
+        return self._execute_query(query, values, "updated")
+
+    def delete_book(self, title):
+        """Delete a book from the library."""
+        query = "DELETE FROM books WHERE title = %s"
+        values = (title,)
+
+        return self._execute_query(query, values, "deleted")
+
+    def _execute_query(self, query, values, action):
+        """Execute a database query."""
+        try:
+            self.db.cursor.execute(query, values)
+            self.db.connection.commit()
+            self.logger.info(f"Book successfully {action}.")
+        except psycopg2.Error as e:
+            self.logger.error(f"Error {action} book: {e}")
+
+            return f"Error {action} book: {e}"
+
+    def _fetch_query(self, query):
+        """Fetch results from a database query."""
+        try:
+            self.db.cursor.execute(query)
+            results = self.db.cursor.fetchall()
+            if results:
+                self.logger.info(f"Fetched {len(results)} books.")
+
+                return results
+                
+            self.logger.warning("No books found.")
+
+            return None
+        except psycopg2.Error as e:
+            self.logger.error(f"Error fetching books: {e}")
+            
+            return None
