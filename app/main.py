@@ -12,12 +12,15 @@ class LibraryApp:
     def run(self):
         """Run the Library Management System."""
         self.utility.logger.info("Library Management System started.")
+        
         while True:
             choice = self.utility.show_menu()
+            
             if choice == "5":
                 self.utility.logger.info("Exiting the system.")
                 self.db.close()
                 break
+                
             self.utility.handle_choice(choice, self.book_manager)
 
 if __name__ == "__main__":
