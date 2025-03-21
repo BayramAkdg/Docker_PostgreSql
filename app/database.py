@@ -1,30 +1,31 @@
 import psycopg2
+import os
+import logging
 
 class Database:
     def __init__(self):
-        self.conn = psycopg2.connect(
-            dbname="library_db",
-            user="postgres",
-            password="postgres",
-            host="db",
-            port="5432"
-        )
-        self.cursor = self.conn.cursor()
-        self.create_table()
+        self.connection = None
+        self.cursor = None
+        self._setup_logging()
 
-    def create_table(self):
-        query = """
-        CREATE TABLE IF NOT EXISTS books (
-            id SERIAL PRIMARY KEY,
-            kitap_adi TEXT NOT NULL,
-            yazar TEXT NOT NULL,
-            yayin_yili INTEGER,
-            sayfa_sayisi INTEGER
-        );
-        """
-        self.cursor.execute(query)
-        self.conn.commit()
+    def _setup_logging(self):
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+        self.logger = logging.getLogger(__name__)
 
-    def close_connection(self):
-        self.cursor.close()
-        self.conn.close()
+    def connect(self):
+        """Connect to the PostgreSQL database."""
+        try:
+            database_url = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/library")
+            self.connection = psycopg2.connect(database_url)
+            self.cursor = self.connection.cursor()
+            self.logger.info("Connected to the PostgreSQL database.")
+        except psycopg2.Error as e:
+            self.logger.error(f"Error connecting to database: {e}")
+
+    def close(self):
+        """Close the database connection."""
+        if self.cursor:
+            self.cursor.close()
+        if self.connection:
+            self.connection.close()
+            self.logger.info("Database connection closed.")
