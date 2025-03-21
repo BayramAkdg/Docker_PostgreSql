@@ -22,7 +22,6 @@ class LibraryUtility:
 
     def handle_choice(self, choice, book_manager):
         """Handle user's choice from the menu."""
-        
         if choice == "1":
             title = input("Book title: ").strip()
             author = input("Author: ").strip()
@@ -30,7 +29,6 @@ class LibraryUtility:
             try:
                 year = int(input("Year: ").strip())
                 pages = int(input("Page count: ").strip())
-                
             except ValueError:
                 self.logger.error("Invalid input for year or pages. Please enter valid integers.")
                 print("Invalid input for year or pages. Please enter valid integers.")
@@ -43,7 +41,6 @@ class LibraryUtility:
 
         elif choice == "2":
             books = book_manager.get_books()
-            
             if isinstance(books, list) and books:
                 self.logger.info(f"Listing {len(books)} books.")
                 print("\nBooks in the Library:")
@@ -62,7 +59,6 @@ class LibraryUtility:
             try:
                 new_year = int(input("New year: ").strip())
                 new_pages = int(input("New page count: ").strip())
-                
             except ValueError:
                 self.logger.error("Invalid input for year or pages. Please enter valid integers.")
                 print("Invalid input for year or pages. Please enter valid integers.")
@@ -78,11 +74,9 @@ class LibraryUtility:
             result = book_manager.delete_book(book_id)
             self.logger.info(f"Delete Book result: {result}")
             print(result)
-
         elif choice == "5":
             self.logger.info("Exiting the system...")
             print("Exiting the system...")
-            
         else:
             self.logger.error("Invalid choice, please try again.")
             print("Invalid choice, please try again.")
