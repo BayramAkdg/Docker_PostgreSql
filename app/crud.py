@@ -17,7 +17,6 @@ class BookManager:
         
         if not books:
             print("Kütüphane boş!")
-            
         else:
             for book in books:
                 print(f"ID: {book[0]}, Kitap Adı: {book[1]}, Yazar: {book[2]}, Yayın Yılı: {book[3]}, Sayfa Sayısı: {book[4]}")
